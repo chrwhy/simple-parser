@@ -32,9 +32,12 @@ simple-parser/
 ├── jieba.go            # ParseJiebaClause 实现
 ├── pinyin.go           # ParsePinyinClause
 ├── clause.go           # ParseClause（轻量路径）
+├── synonym.go          # 同义词词典加载与查询
 ├── data/t2s.txt        # 繁简字典（与 chrwhy/simple 同源）
+├── data/synonym.txt    # 同义词词典（可选）
 ├── jieba_test.go       # 主测试套件
 ├── normalize_test.go   # 简繁归一化测试
+├── synonym_test.go     # 同义词功能测试
 ├── docs/SPEC.md
 ├── AGENTS.md
 └── README.md
@@ -50,9 +53,12 @@ simple-parser/
 | `clause.go` | `ParseClause` — 轻量路径，空格/中英边界切分 |
 | `token.go` | token 分类、`splitMixed`、`escapeQuote`、`IsAllEn` |
 | `normalize.go` | `ToSimplified` — 繁简归一化，字典 `data/t2s.txt` |
+| `synonym.go` | 同义词词典加载与查询，支持中文和英文同义词扩展 |
 | `data/t2s.txt` | 繁→简逐字映射表（与 chrwhy/simple 保持一致） |
+| `data/synonym.txt` | 同义词词典（格式：`主词:同义词1,同义词2,...`） |
 | `doc.go` | 包级文档注释 |
 | `jieba_test.go` | 主测试套件（表驱动 + 日志输出） |
+| `synonym_test.go` | 同义词功能测试 |
 
 ---
 
@@ -87,6 +93,14 @@ simple-parser/
 - 算法：逐 rune 查表替换，与 simple 的 `PinYin::get_ts` 一致
 - 自动应用于 `ParseJiebaClause` 和 `ParseClause` 入口
 - 更新字典时须从 `../simple/contrib/t2s.txt` 同步
+
+### 5. WithSynonym（同义词扩展）
+
+- 字典：`data/synonym.txt`（`主词:同义词1,同义词2,...` 格式）
+- 生效范围：中文token和英文token都会进行同义词扩展
+- 启用方式：`parser.New(parser.WithSynonym("data/synonym.txt"))`
+- 输出格式：中文 `"词" OR "同义词1" OR "同义词2"`，英文 `(拼音 OR 原词 OR 同义词1 OR 同义词2)`
+- 不启用时行为与原来完全一致
 
 ---
 

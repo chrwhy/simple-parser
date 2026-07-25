@@ -24,6 +24,7 @@ SELECT rowid, highlight(docs, 1, '<b>', '</b>') FROM docs WHERE docs MATCH ?
 | `ParseJiebaClause` | 是 | 简繁归一化 + 中文分词 + 全类型 token 处理 |
 | `ParsePinyinClause` | 否 | 纯英文 → 拼音 FTS5 子句 |
 | `ParseClause` | 否 | 简繁归一化 + 空格/中英边界切分 |
+| `WithSynonym` | 否 | 同义词扩展选项（`data/synonym.txt`） |
 
 ---
 
@@ -183,6 +184,48 @@ SELECT rowid, highlight(docs, 1, '<b>', '</b>') FROM docs WHERE docs MATCH ?
 | 数字/标点 | 完整 classifyToken | 非全英文整段引号包裹 |
 
 轻量路径适合无 Jieba 开销场景；语义可能与 Jieba 路径不一致，选用时需明确。
+
+---
+
+## WithSynonym（同义词扩展）
+
+### 词典格式
+
+文件路径：`data/synonym.txt`
+
+```
+# 注释行以 # 开头
+主词:同义词1,同义词2,...
+```
+
+示例：
+```
+电脑:计算机,PC
+手机:移动电话,智能手机
+hello:hi,hey
+```
+
+### 处理规则
+
+1. 词典在 Parser 创建时通过 `WithSynonym(path)` 选项加载
+2. 对中文token：输出 `"原词" OR "同义词1" OR "同义词2"`
+3. 对英文token：输出 `(拼音 OR 原词 OR 同义词1 OR 同义词2)`
+4. 同义词查找支持双向：主词→同义词，同义词→主词
+5. 不启用同义词时（默认），行为与原来完全一致
+
+### 严格断言示例
+
+| 输入 | 词典配置 | 期望输出 |
+|------|----------|----------|
+| `电脑` | `电脑:计算机,PC` | `"电脑" OR "计算机" OR "PC"` |
+| `中国` | 无同义词 | `"中国"` |
+
+### 典型输出示例
+
+| 输入 | 词典配置 | 输出（参考） |
+|------|----------|--------------|
+| `hello world` | `hello:hi,hey` | `(h+e+l+l+o OR hello OR hi OR hey) AND "world"` |
+| `电脑手机` | `电脑:计算机,PC`<br>`手机:移动电话` | `"电脑" OR "计算机" OR "PC" AND "手机" OR "移动电话"` |
 
 ---
 

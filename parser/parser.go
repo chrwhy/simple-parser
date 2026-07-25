@@ -9,12 +9,31 @@ import (
 
 // Parser 封装 jieba 分词器生命周期，用于将查询解析为 FTS5 MATCH 子句。
 type Parser struct {
-	jieba *gojieba.Jieba
+	jieba   *gojieba.Jieba
+	synonym *SynonymDict
+}
+
+// WithSynonym 启用同义词扩展，从指定路径加载同义词词典。
+func WithSynonym(dictPath string) func(*Parser) {
+	return func(p *Parser) {
+		dict, err := LoadSynonymDict(dictPath)
+		if err != nil {
+			// 加载失败时不启用同义词，记录错误
+			return
+		}
+		p.synonym = dict
+	}
 }
 
 // New 创建 Parser 并加载 jieba 词典。
-func New() *Parser {
-	return &Parser{jieba: gojieba.NewJieba()}
+// 可选参数：
+//   - WithSynonym(path): 启用同义词扩展
+func New(opts ...func(*Parser)) *Parser {
+	p := &Parser{jieba: gojieba.NewJieba()}
+	for _, opt := range opts {
+		opt(p)
+	}
+	return p
 }
 
 // Close 释放 jieba 资源。
@@ -66,7 +85,7 @@ func (p *Parser) ParseJiebaClause(query string) string {
 	if !isValidQuery(query) {
 		return ""
 	}
-	return parseJiebaClause(p.jieba, query)
+	return parseJiebaClause(p.jieba, query, p.synonym)
 }
 
 // isValidQuery 检查查询是否有效：非空、去空格后非空、不超过最大长度。

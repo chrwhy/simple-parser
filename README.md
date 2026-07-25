@@ -15,6 +15,7 @@
 - **ParsePinyinClause**：英文转拼音候选（基于 [open-pinyin](https://github.com/chrwhy/open-pinyin)）
 - **ParseClause**：简繁归一化 + 不依赖 Jieba 的空格/中英切分解析（轻量路径）
 - **ToSimplified**：繁体转简体（字典与 [chrwhy/simple](https://github.com/chrwhy/simple) 的 `contrib/t2s.txt` 同源）
+- **WithSynonym**：同义词扩展，搜索"电脑"时自动扩展为"电脑" OR "计算机" OR "PC"
 
 ## 安装
 
@@ -46,6 +47,24 @@ clause := p.ParseJiebaClause("周杰伦 Jay Chou")
 // 繁体输入自动转简体
 clause = p.ParseJiebaClause("中華人民共和國")
 // `"中华人民共和国"`
+```
+
+### 同义词扩展
+
+```go
+// 启用同义词功能
+p := parser.New(
+    parser.WithSynonym("data/synonym.txt"),
+)
+defer p.Close()
+
+// 中文同义词扩展
+clause := p.ParseJiebaClause("电脑")
+// `"电脑" OR "计算机" OR "PC"`
+
+// 英文同义词扩展
+clause = p.ParseJiebaClause("hello world")
+// `(h+e+l+l+o OR hello OR hi OR hey) AND "world"`
 ```
 
 ### 包级函数（兼容旧代码）
