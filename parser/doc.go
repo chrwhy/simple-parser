@@ -6,6 +6,18 @@
 //	defer p.Close()
 //	clause := p.ParseJiebaClause("周杰伦 Jay Chou")
 //
+// 启用同义词扩展（内置词典）：
+//
+//	p := parser.New(parser.WithSynonym())
+//	defer p.Close()
+//	clause := p.ParseJiebaClause("电脑", parser.EnableSynonym())
+//
+// 使用自定义同义词词典：
+//
+//	p := parser.New(parser.WithSynonymFile("/path/to/synonym.txt"))
+//	defer p.Close()
+//	clause := p.ParseJiebaClause("电脑", parser.EnableSynonym())
+//
 // 也可使用包级函数（需先调用 InitJieba / 结束时 FreeJieba）：
 //
 //	parser.InitJieba()

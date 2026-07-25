@@ -2,6 +2,7 @@ package parser
 
 import (
 	"bufio"
+	"io"
 	"os"
 	"strings"
 	"sync"
@@ -25,13 +26,17 @@ func LoadSynonymDict(path string) (*SynonymDict, error) {
 		return nil, err
 	}
 	defer f.Close()
+	return parseSynonymDict(f)
+}
 
+// parseSynonymDict 从 io.Reader 解析同义词词典。
+func parseSynonymDict(r io.Reader) (*SynonymDict, error) {
 	dict := &SynonymDict{
 		forward: make(map[string][]string),
 		reverse: make(map[string][]string),
 	}
 
-	scanner := bufio.NewScanner(f)
+	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
 		if line == "" || strings.HasPrefix(line, "#") {

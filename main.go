@@ -51,7 +51,7 @@ func main() {
 
 	fmt.Println("=== Parser 集成测试 ===\n")
 
-	p := parser.New(parser.WithSynonym(dictPath))
+	p := parser.New(parser.WithSynonymFile(dictPath))
 	defer p.Close()
 
 	queryTests := []string{

@@ -9,9 +9,3 @@
 美丽:漂亮,好看
 学习:学习,钻研
 搜索:查找,检索
-
-# 英文同义词示例
-hello:hi,hey
-computer:pc
-happy:glad,joyful
-search:find,lookup
