@@ -80,13 +80,18 @@ var (
 )
 
 // InitJieba 初始化包级默认 Parser，供 ParseJiebaClause 使用。
-func InitJieba() {
+// 可选参数与 New() 相同，例如 WithSynonym()、WithSynonymFile(path)。
+// 未传入任何参数时，默认使用内置同义词词典。
+func InitJieba(opts ...func(*Parser)) {
 	defaultMu.Lock()
 	defer defaultMu.Unlock()
 	if defaultParser != nil {
 		defaultParser.Close()
 	}
-	defaultParser = New()
+	if len(opts) == 0 {
+		opts = []func(*Parser){WithSynonym()}
+	}
+	defaultParser = New(opts...)
 }
 
 // FreeJieba 释放包级默认 Parser。
@@ -125,6 +130,31 @@ func (p *Parser) ParseJiebaClause(query string, opts ...ParseOption) string {
 		dict = p.synonym
 	}
 	return parseJiebaClause(p.jieba, query, dict)
+}
+
+// LookupSynonymPhrase 在默认 parser 的同义词词典中整词查找短语的同义词。
+func LookupSynonymPhrase(phrase string) []string {
+	defaultMu.Lock()
+	p := defaultParser
+	defaultMu.Unlock()
+	if p == nil {
+		return nil
+	}
+	return p.synonym.LookupPhrase(phrase)
+}
+
+// BuildPhraseSynonymClause 构建整词匹配 + 同义词扩展的 FTS5 MATCH 子句。
+// 返回格式如：`"红烧肉" OR "东坡肉"`，所有词作为整词匹配。
+// 若无同义词则返回 `"红烧肉"`。
+// 调用方自行决定何时使用整词匹配（如短查询场景）。
+func BuildPhraseSynonymClause(query string) string {
+	phrase := strings.TrimSpace(query)
+	syns := LookupSynonymPhrase(phrase)
+	clause := `"` + escapeQuote(phrase) + `"`
+	for _, syn := range syns {
+		clause += ` OR "` + escapeQuote(syn) + `"`
+	}
+	return clause
 }
 
 // isValidQuery 检查查询是否有效：非空、去空格后非空、不超过最大长度。
