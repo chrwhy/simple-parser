@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	dictPath := "data/synonym.txt"
+	dictPath := "parser/data/synonym.txt"
 
 	dict, err := parser.LoadSynonymDict(dictPath)
 	if err != nil {
@@ -30,11 +30,6 @@ func main() {
 		{"高兴", "中文同义词"},
 		{"搜索", "中文主词"},
 		{"查找", "中文同义词"},
-		{"hello", "英文主词"},
-		{"hi", "英文同义词"},
-		{"computer", "英文主词"},
-		{"happy", "英文主词"},
-		{"search", "英文主词"},
 		{"不存在的词", "不存在的词"},
 	}
 
@@ -59,8 +54,8 @@ func main() {
 		"电脑",
 		"手机 搜索",
 		"快乐学习",
-		"hello",
-		"happy computer",
+		"东坡肉",
+		"西红柿炒鸡蛋",
 	}
 
 	for _, q := range queryTests {
