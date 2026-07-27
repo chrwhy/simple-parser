@@ -119,6 +119,15 @@ func (d *SynonymDict) Lookup(word string) []string {
 	return result
 }
 
+// LookupPhrase 查询一个短语的同义词（整词匹配，不分词）。
+// 用于短查询场景：直接将整个查询作为 key 在词典中查找。
+func (d *SynonymDict) LookupPhrase(phrase string) []string {
+	if d == nil {
+		return nil
+	}
+	return d.Lookup(phrase)
+}
+
 // Size 返回词典中的条目数（主词数量）。
 func (d *SynonymDict) Size() int {
 	if d == nil {
