@@ -1,7 +1,9 @@
 package parser
 
 import (
+	"bufio"
 	_ "embed"
+	"os"
 	"strings"
 	"sync"
 
@@ -54,6 +56,24 @@ func WithSynonymFile(path string) func(*Parser) {
 	}
 }
 
+// WithUserDict 从字符串加载用户自定义词典（每行一个词，# 开头为注释）。
+func WithUserDict(data string) func(*Parser) {
+	return func(p *Parser) {
+		loadUserDict(p.jieba, data)
+	}
+}
+
+// WithUserDictFile 从文件路径加载用户自定义词典（每行一个词，# 开头为注释）。
+func WithUserDictFile(path string) func(*Parser) {
+	return func(p *Parser) {
+		data, err := os.ReadFile(path)
+		if err != nil {
+			return
+		}
+		loadUserDict(p.jieba, string(data))
+	}
+}
+
 // New 创建 Parser 并加载 jieba 词典。
 // 可选参数：
 //   - WithSynonym(): 使用内置同义词词典
@@ -64,6 +84,18 @@ func New(opts ...func(*Parser)) *Parser {
 		opt(p)
 	}
 	return p
+}
+
+// loadUserDict 从文本加载用户词典（每行一个词，# 开头为注释）。
+func loadUserDict(j *gojieba.Jieba, data string) {
+	scanner := bufio.NewScanner(strings.NewReader(data))
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		j.AddWord(line)
+	}
 }
 
 // Close 释放 jieba 资源。
