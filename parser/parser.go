@@ -136,6 +136,26 @@ func FreeJieba() {
 	}
 }
 
+// AddWord 向默认 parser 的 jieba 词典动态添加词（立即生效，无需重启）。
+func AddWord(word string) {
+	defaultMu.Lock()
+	defer defaultMu.Unlock()
+	if defaultParser != nil && defaultParser.jieba != nil {
+		defaultParser.jieba.AddWord(word)
+	}
+}
+
+// AddWords 批量添加词到 jieba 词典（立即生效）。
+func AddWords(words []string) {
+	defaultMu.Lock()
+	defer defaultMu.Unlock()
+	if defaultParser != nil && defaultParser.jieba != nil {
+		for _, w := range words {
+			defaultParser.jieba.AddWord(w)
+		}
+	}
+}
+
 // ParseJiebaClause 使用 jieba 分词将用户输入转换为 FTS5 MATCH 条件。
 // 此函数持有锁直到操作完成，防止与 FreeJieba 产生竞态。
 func ParseJiebaClause(query string, opts ...ParseOption) string {
