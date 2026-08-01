@@ -8,10 +8,22 @@ import (
 
 // functionalPOS 虚词词性前缀，分词后过滤。
 // c=连词 u=助词 p=介词 e=叹词 y=语气词 o=拟声词 w=标点
-// 注意: x=非语素字 不过滤，用户词典添加的词会被标为 x
+// 注意: v=动词 不过滤（"烘焙""炒""煮"等是动词但有效）
+// 注意: x=非语素字 不过滤（用户词典词会被标为 x，如"柠檬酱"）
 var functionalPOS = map[string]bool{
 	"c": true, "u": true, "p": true, "e": true,
 	"y": true, "o": true, "w": true,
+}
+
+// punctuation 直接匹配的标点符号（gojieba 可能把标点标为 x 而非 w）。
+var punctuation = map[rune]bool{
+	',': true, '，': true, '、': true, ';': true, '；': true,
+	':': true, '：': true, '.': true, '。': true,
+	'!': true, '！': true, '?': true, '？': true,
+	'(': true, '（': true, ')': true, '）': true,
+	'“': true, '”': true, // "" 中文双引号
+	'‘': true, '’': true, // '' 中文单引号
+	'【': true, '】': true, '《': true, '》': true,
 }
 
 // CutContentWords 使用 jieba 分词并过滤虚词，返回实词列表。
@@ -44,6 +56,10 @@ func cutContentWords(j *gojieba.Jieba, query string) []string {
 		}
 		// 过滤虚词（取词性前缀的第一个字符）
 		if functionalPOS[pos[:1]] {
+			continue
+		}
+		// 过滤标点（gojieba 可能把标点标为 x 而非 w）
+		if len([]rune(word)) == 1 && punctuation[[]rune(word)[0]] {
 			continue
 		}
 		result = append(result, word)
