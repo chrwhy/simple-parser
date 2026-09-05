@@ -156,6 +156,18 @@ func AddWords(words []string) {
 	}
 }
 
+// AddSynonyms 动态添加同义词映射到默认 parser（立即生效）。
+// synonyms: map[主词][]同义词，如 {"虾": ["大虾", "明虾"]}。
+func AddSynonyms(synonyms map[string][]string) {
+	defaultMu.Lock()
+	defer defaultMu.Unlock()
+	if defaultParser != nil && defaultParser.synonym != nil {
+		for word, syns := range synonyms {
+			defaultParser.synonym.Add(word, syns)
+		}
+	}
+}
+
 // ParseJiebaClause 使用 jieba 分词将用户输入转换为 FTS5 MATCH 条件。
 // 此函数持有锁直到操作完成，防止与 FreeJieba 产生竞态。
 func ParseJiebaClause(query string, opts ...ParseOption) string {

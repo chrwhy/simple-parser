@@ -137,3 +137,37 @@ func (d *SynonymDict) Size() int {
 	defer d.mu.RUnlock()
 	return len(d.forward)
 }
+
+// Add 添加同义词映射到词典（立即生效）。
+// word: 主词，synonyms: 同义词列表。
+func (d *SynonymDict) Add(word string, synonyms []string) {
+	if d == nil || word == "" || len(synonyms) == 0 {
+		return
+	}
+
+	d.mu.Lock()
+	defer d.mu.Unlock()
+
+	for _, syn := range synonyms {
+		syn = strings.TrimSpace(syn)
+		if syn == "" || syn == word {
+			continue
+		}
+
+		// 检查是否已存在
+		exists := false
+		for _, existing := range d.forward[word] {
+			if existing == syn {
+				exists = true
+				break
+			}
+		}
+		if exists {
+			continue
+		}
+
+		// 添加到 forward 和 reverse
+		d.forward[word] = append(d.forward[word], syn)
+		d.reverse[syn] = append(d.reverse[syn], word)
+	}
+}
